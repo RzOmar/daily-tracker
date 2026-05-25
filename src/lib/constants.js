@@ -6,6 +6,11 @@ export const STORAGE = {
 }
 
 export const CATEGORY_SCORES = {
+  very_productive: 3,
+  productive: 2,
+  neutral: 0,
+  distracting: -2,
+  very_distracting: -3,
   'Very Productive': 3,
   Productive: 2,
   Neutral: 0,
@@ -23,24 +28,16 @@ export const CATEGORY_COLORS = {
   'Very Distracting': 'text-rose-300 bg-rose-500/10 border-rose-400/20',
 }
 
-export const ACTIVITY_CATEGORY_OPTIONS = [
-  { value: 'Very Productive', label: 'Focus Work', detail: 'Very Productive', color: '#22c55e' },
-  { value: 'Productive', label: 'Other Work', detail: 'Productive', color: '#86efac' },
-  { value: 'Neutral', label: 'Neutral', detail: 'Neutral', color: '#94a3b8' },
-  { value: 'Personal', label: 'Personal', detail: 'Personal', color: '#60a5fa' },
-  { value: 'Distracting', label: 'Distracting', detail: 'Distracting', color: '#ef4444' },
-]
-
 export const DEFAULT_ACTIVITIES = [
-  { id: 'deep-work', name: 'Deep Work', color: '#3b82f6', category: 'Very Productive' },
-  { id: 'video-editing', name: 'Video Editing', color: '#ec4899', category: 'Productive' },
-  { id: 'lecturing', name: 'Lecturing', color: '#f97316', category: 'Productive' },
-  { id: 'research', name: 'Research', color: '#14b8a6', category: 'Very Productive' },
-  { id: 'reading', name: 'Reading', color: '#8b5cf6', category: 'Productive' },
-  { id: 'exercise', name: 'Exercise', color: '#22c55e', category: 'Very Productive' },
-  { id: 'family', name: 'Family', color: '#facc15', category: 'Neutral' },
-  { id: 'social-media', name: 'Social Media', color: '#06b6d4', category: 'Distracting' },
-  { id: 'entertainment', name: 'Entertainment', color: '#ef4444', category: 'Distracting' },
-  { id: 'travel', name: 'Travel', color: '#a3e635', category: 'Neutral' },
-  { id: 'meetings', name: 'Meetings', color: '#94a3b8', category: 'Neutral' },
+  { id: 'deep-work', name: 'Deep Work', category: 'very_productive', archived: false, order: 0 },
+  { id: 'video-editing', name: 'Video Editing', category: 'productive', archived: false, order: 1 },
+  { id: 'lecturing', name: 'Lecturing', category: 'productive', archived: false, order: 2 },
+  { id: 'research', name: 'Research', category: 'very_productive', archived: false, order: 3 },
+  { id: 'reading', name: 'Reading', category: 'productive', archived: false, order: 4 },
+  { id: 'exercise', name: 'Exercise', category: 'very_productive', archived: false, order: 5 },
+  { id: 'family', name: 'Family', category: 'neutral', archived: false, order: 6 },
+  { id: 'social-media', name: 'Social Media', category: 'distracting', archived: false, order: 7 },
+  { id: 'entertainment', name: 'Entertainment', category: 'distracting', archived: false, order: 8 },
+  { id: 'travel', name: 'Travel', category: 'neutral', archived: false, order: 9 },
+  { id: 'meetings', name: 'Meetings', category: 'neutral', archived: false, order: 10 },
 ]

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
-import { CATEGORY_SCORES } from '../../lib/constants'
+import { getActivityColor, getActivityScore } from '../../lib/activityCategories'
 import { dateId, monthDates } from '../../lib/date'
 import { isBeastDay } from '../../lib/beast'
 import { cn } from '../../lib/utils'
@@ -16,11 +16,11 @@ export function MonthView({ currentDate, entries, activities, now, beast, setCur
       if (!dayId.startsWith(dateId(currentDate).slice(0, 7))) return
       const activity = activityById[entry.activityId]
       if (!activity) return
-      const score = CATEGORY_SCORES[activity.category] || 0
+      const score = getActivityScore(activity)
       stats[dayId] = stats[dayId] || { hours: 0, score: 0, colors: [] }
       stats[dayId].hours += 1
       stats[dayId].score += score
-      stats[dayId].colors.push(activity.color)
+      stats[dayId].colors.push(getActivityColor(activity))
     })
 
     return stats

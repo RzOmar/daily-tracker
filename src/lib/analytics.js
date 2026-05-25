@@ -1,4 +1,4 @@
-import { CATEGORY_SCORES } from './constants'
+import { ACTIVITY_CATEGORY_IDS, getActivityScore, normalizeCategory } from './activityCategories'
 import { addDays, dateId, parseDate, startOfWeek } from './date'
 
 export function computeAnalytics(entries, activities, currentDate) {
@@ -7,7 +7,7 @@ export function computeAnalytics(entries, activities, currentDate) {
   const weekStart = startOfWeek(currentDate)
   const weekIds = new Set(Array.from({ length: 7 }, (_, index) => dateId(addDays(weekStart, index))))
   const monthPrefix = todayId.slice(0, 7)
-  const distribution = Object.fromEntries(Object.keys(CATEGORY_SCORES).map((category) => [category, 0]))
+  const distribution = Object.fromEntries(ACTIVITY_CATEGORY_IDS.map((category) => [category, 0]))
   const dayScores = {}
   const dayHours = {}
   const activityStats = Object.fromEntries(activities.map((activity) => [activity.id, {
@@ -28,11 +28,12 @@ export function computeAnalytics(entries, activities, currentDate) {
     if (!activity) return
 
     const day = key.slice(0, 10)
-    const score = CATEGORY_SCORES[activity.category]
+    const category = normalizeCategory(activity.category)
+    const score = getActivityScore(activity)
     totalHours += 1
     dayScores[day] = (dayScores[day] || 0) + score
     dayHours[day] = (dayHours[day] || 0) + 1
-    distribution[activity.category] += 1
+    distribution[category] += 1
     activityStats[activity.id] ||= { today: 0, week: 0, month: 0, total: 0 }
     activityStats[activity.id].total += 1
     if (day === todayId) activityStats[activity.id].today += 1

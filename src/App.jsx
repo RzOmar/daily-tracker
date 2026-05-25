@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { ActivityModal } from './components/ActivityModal'
+import { ActivityManagerModal } from './components/activities/ActivityManagerModal'
 import { DayView } from './components/calendar/DayView'
 import { MonthView } from './components/calendar/MonthView'
 import { WeekView } from './components/calendar/WeekView'
@@ -15,18 +16,19 @@ import { addDays, addMonths, dateId, entryKey, formatHour } from './lib/date'
 import { computeAnalytics } from './lib/analytics'
 import { readStorage, writeStorage } from './lib/storage'
 import { beastDuration, beastElapsed, beastRange } from './lib/beast'
+import { normalizeCategory } from './lib/activityCategories'
 
 export default function App() {
   const [now, setNow] = useState(new Date())
   const [page, setPage] = useState('tracker')
   const [view, setView] = useState('day')
   const [currentDate, setCurrentDate] = useState(new Date())
-  const [activities, setActivities] = useState(() => readStorage(STORAGE.activities, DEFAULT_ACTIVITIES))
+  const [activities, setActivities] = useState(() => normalizeActivities(readStorage(STORAGE.activities, DEFAULT_ACTIVITIES)))
   const [entries, setEntries] = useState(() => readStorage(STORAGE.entries, {}))
   const [beast, setBeast] = useState(() => readStorage(STORAGE.beast, {}))
   const [beastGoals, setBeastGoals] = useState(() => readStorage(STORAGE.beastGoals, { 7: '', 30: '', 100: '' }))
   const [modalOpen, setModalOpen] = useState(false)
-  const [modalMode, setModalMode] = useState('select')
+  const [activityManagerOpen, setActivityManagerOpen] = useState(false)
   const [selectedCell, setSelectedCell] = useState(null)
 
   useEffect(() => {
@@ -46,9 +48,7 @@ export default function App() {
       if (event.key === '2') setView('week')
       if (event.key === '3') setView('month')
       if (event.key.toLowerCase() === 'n') {
-        setSelectedCell(null)
-        setModalMode('create')
-        setModalOpen(true)
+        setActivityManagerOpen(true)
       }
       if (event.key.toLowerCase() === 't') setCurrentDate(new Date())
     }
@@ -61,7 +61,6 @@ export default function App() {
 
   function openCell(day, hour) {
     setSelectedCell({ day, hour })
-    setModalMode('select')
     setModalOpen(true)
   }
 
@@ -91,16 +90,6 @@ export default function App() {
     })
   }
 
-  function saveActivity(activity) {
-    setActivities((current) => [...current, activity])
-  }
-
-  function openCreateActivity() {
-    setSelectedCell(null)
-    setModalMode('create')
-    setModalOpen(true)
-  }
-
   const sharedGridProps = {
     currentDate,
     entries,
@@ -121,6 +110,7 @@ export default function App() {
           view={view}
           setView={setView}
           setCurrentDate={setCurrentDate}
+          onManageActivities={() => setActivityManagerOpen(true)}
         />
         <main className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 p-5 max-md:p-3">
           {page === 'tracker' ? (
@@ -174,21 +164,36 @@ export default function App() {
         </main>
       </div>
       <ActivityModal
-        key={modalOpen ? `${modalMode}-${selectedCell ? entryKey(dateId(selectedCell.day), selectedCell.hour) : 'new'}` : 'closed'}
+        key={modalOpen ? `select-${selectedCell ? entryKey(dateId(selectedCell.day), selectedCell.hour) : 'new'}` : 'closed'}
         open={modalOpen}
-        mode={modalMode}
         onClose={() => setModalOpen(false)}
         activities={activities}
-        onSave={saveActivity}
         selectedCell={selectedCell}
         onAssign={assignActivity}
         onClear={clearSelectedCell}
       />
-      <Button className="fixed bottom-4 right-4 z-40 hidden shadow-2xl max-md:inline-flex" size="icon" onClick={openCreateActivity} aria-label="Add activity">
+      <ActivityManagerModal
+        open={activityManagerOpen}
+        onClose={() => setActivityManagerOpen(false)}
+        activities={activities}
+        setActivities={setActivities}
+        setEntries={setEntries}
+      />
+      <Button className="fixed bottom-4 right-4 z-40 hidden shadow-2xl max-md:inline-flex" size="icon" onClick={() => setActivityManagerOpen(true)} aria-label="Manage activities">
         <Plus className="h-5 w-5" />
       </Button>
     </div>
   )
+}
+
+function normalizeActivities(activities) {
+  return activities.map((activity, index) => ({
+    id: activity.id,
+    name: activity.name,
+    category: normalizeCategory(activity.category),
+    archived: Boolean(activity.archived),
+    order: Number.isFinite(activity.order) ? activity.order : index,
+  }))
 }
 
 function BeastStatus({ beast }) {

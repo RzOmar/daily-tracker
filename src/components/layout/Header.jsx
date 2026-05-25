@@ -1,19 +1,25 @@
-import { Crosshair } from 'lucide-react'
+import { Crosshair, SlidersHorizontal } from 'lucide-react'
 import { Button } from '../ui/button'
 import { cn } from '../../lib/utils'
 
-export function Header({ page, view, setView, setCurrentDate }) {
+export function Header({ page, view, setView, setCurrentDate, onManageActivities }) {
   const views = [
     ['day', 'Day View'],
     ['week', 'Week View'],
     ['month', 'Month View'],
   ]
 
+  const title = {
+    tracker: 'Tracker',
+    dashboard: 'Dashboard',
+    beast: 'Beast Mode',
+  }[page]
+
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0f1115]/88 px-5 py-3 backdrop-blur-xl">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-base font-semibold tracking-tight">{page === 'tracker' ? 'Tracker' : 'Dashboard'}</h1>
+          <h1 className="text-base font-semibold tracking-tight">{title}</h1>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {page === 'tracker' && (
@@ -35,6 +41,10 @@ export function Header({ page, view, setView, setCurrentDate }) {
           <Button variant="secondary" onClick={() => setCurrentDate(new Date())}>
             <Crosshair className="h-4 w-4" />
             Today
+          </Button>
+          <Button variant="secondary" onClick={onManageActivities}>
+            <SlidersHorizontal className="h-4 w-4" />
+            Manage Activities
           </Button>
         </div>
       </div>

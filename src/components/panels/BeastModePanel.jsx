@@ -4,7 +4,7 @@ import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'
 import { beastDuration, beastElapsed, beastProgress, beastRange } from '../../lib/beast'
-import { CATEGORY_SCORES } from '../../lib/constants'
+import { getActivityScore } from '../../lib/activityCategories'
 import { addDays, dateId } from '../../lib/date'
 import { cn } from '../../lib/utils'
 import { StatCard } from './AnalyticsPanel'
@@ -195,6 +195,6 @@ function dayHasPositiveScore(dayId, entries, activityById) {
   return Object.entries(entries).some(([key, entry]) => {
     if (!key.startsWith(dayId)) return false
     const activity = activityById[entry.activityId]
-    return activity && (CATEGORY_SCORES[activity.category] || 0) > 0
+    return activity && getActivityScore(activity) > 0
   })
 }

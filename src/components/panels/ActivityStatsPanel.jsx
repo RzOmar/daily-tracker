@@ -1,4 +1,5 @@
 import { Card } from '../ui/card'
+import { getActivityColor } from '../../lib/activityCategories'
 
 export function ActivityStatsPanel({ activities, analytics }) {
   const rows = activities
@@ -26,7 +27,7 @@ export function ActivityStatsPanel({ activities, analytics }) {
             {rows.length ? rows.map(({ activity, stats }) => (
               <div key={activity.id} className="grid grid-cols-[1.7fr_repeat(4,0.7fr)] items-center gap-3 py-3 text-sm">
                 <span className="flex min-w-0 items-center gap-2 text-slate-300">
-                  <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: activity.color }} />
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: getActivityColor(activity) }} />
                   <span className="truncate">{activity.name}</span>
                 </span>
                 <span className="text-slate-400">{stats.today}h</span>

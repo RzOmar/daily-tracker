@@ -1,7 +1,11 @@
 import { formatHour } from '../../lib/date'
+import { getActivityColor, getContrastText } from '../../lib/activityCategories'
 import { cn } from '../../lib/utils'
 
 export function CalendarCell({ day, hour, activity, inBeast, isNow, onOpen, onDragStart, onDragEnter, onDragEnd }) {
+  const activityColor = activity ? getActivityColor(activity) : null
+  const textColor = activityColor ? getContrastText(activityColor) : undefined
+
   return (
     <button
       className={cn(
@@ -10,7 +14,7 @@ export function CalendarCell({ day, hour, activity, inBeast, isNow, onOpen, onDr
         activity && 'cell-fill',
         isNow && 'ring-1 ring-inset ring-white/50',
       )}
-      style={activity ? { '--activity-color': activity.color } : undefined}
+      style={activity ? { '--activity-color': activityColor, backgroundColor: `${activityColor}CC`, color: textColor } : undefined}
       title={`${day.toLocaleDateString()} at ${formatHour(hour)}${activity ? ` - ${activity.name}` : ''}`}
       onMouseDown={(event) => onDragStart(event, day, hour)}
       onMouseEnter={() => onDragEnter(day, hour)}
@@ -19,8 +23,8 @@ export function CalendarCell({ day, hour, activity, inBeast, isNow, onOpen, onDr
     >
       {activity ? (
         <div className="pointer-events-none flex h-full items-start gap-2">
-          <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-white/80" />
-          <span className="line-clamp-2 text-xs font-medium leading-snug text-white/95">{activity.name}</span>
+          <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-white/75" />
+          <span className="line-clamp-2 text-xs font-medium leading-snug" style={{ color: textColor }}>{activity.name}</span>
         </div>
       ) : (
         <span className="pointer-events-none text-[11px] text-slate-600 opacity-0 transition group-hover:opacity-100">Select</span>
