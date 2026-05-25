@@ -9,11 +9,19 @@ export function computeAnalytics(entries, activities, currentDate) {
   const monthPrefix = todayId.slice(0, 7)
   const distribution = Object.fromEntries(Object.keys(CATEGORY_SCORES).map((category) => [category, 0]))
   const dayScores = {}
+  const dayHours = {}
+  const activityStats = Object.fromEntries(activities.map((activity) => [activity.id, {
+    today: 0,
+    week: 0,
+    month: 0,
+    total: 0,
+  }]))
   let dailyScore = 0
   let weeklyScore = 0
   let monthlyScore = 0
   let focusedHours = 0
   let distractionHours = 0
+  let totalHours = 0
 
   Object.entries(entries).forEach(([key, entry]) => {
     const activity = activityById[entry.activityId]
@@ -21,8 +29,15 @@ export function computeAnalytics(entries, activities, currentDate) {
 
     const day = key.slice(0, 10)
     const score = CATEGORY_SCORES[activity.category]
+    totalHours += 1
     dayScores[day] = (dayScores[day] || 0) + score
+    dayHours[day] = (dayHours[day] || 0) + 1
     distribution[activity.category] += 1
+    activityStats[activity.id] ||= { today: 0, week: 0, month: 0, total: 0 }
+    activityStats[activity.id].total += 1
+    if (day === todayId) activityStats[activity.id].today += 1
+    if (weekIds.has(day)) activityStats[activity.id].week += 1
+    if (day.startsWith(monthPrefix)) activityStats[activity.id].month += 1
 
     if (score > 0) focusedHours += 1
     if (score < 0) distractionHours += 1
@@ -40,13 +55,33 @@ export function computeAnalytics(entries, activities, currentDate) {
     streak += 1
   }
 
+  const trend = Array.from({ length: 7 }, (_, index) => {
+    const day = addDays(currentDate, index - 6)
+    const id = dateId(day)
+    return {
+      id,
+      label: day.toLocaleDateString(undefined, { weekday: 'short' }),
+      score: dayScores[id] || 0,
+      hours: dayHours[id] || 0,
+    }
+  })
+  const weeklyConsistency = Math.round((Array.from(weekIds).filter((id) => (dayHours[id] || 0) > 0).length / 7) * 100)
+  const activeDays = Object.keys(dayHours).length
+  const averagePerActiveDay = activeDays ? Number((totalHours / activeDays).toFixed(1)) : 0
+
   return {
     dailyScore,
     weeklyScore,
     monthlyScore,
     focusedHours,
     distractionHours,
+    totalHours,
+    completionCount: totalHours,
+    averagePerActiveDay,
     distribution,
+    activityStats,
+    trend,
+    weeklyConsistency,
     streak,
     mostProductiveDay: mostProductiveDay
       ? parseDate(mostProductiveDay).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })

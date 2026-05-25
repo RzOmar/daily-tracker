@@ -1,87 +1,127 @@
-import { useEffect, useState } from 'react'
-import { Plus } from 'lucide-react'
-import { Badge } from './ui/badge'
+import { useState } from 'react'
+import { Plus, Search } from 'lucide-react'
 import { Button } from './ui/button'
 import { Dialog } from './ui/dialog'
-import { CATEGORY_COLORS, CATEGORY_SCORES } from '../lib/constants'
+import { ACTIVITY_CATEGORY_OPTIONS } from '../lib/constants'
 import { formatHour } from '../lib/date'
+import { cn } from '../lib/utils'
 
 function createId(name) {
   return `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}-${Date.now().toString(36)}`
 }
 
-export function ActivityModal({ open, onClose, activities, onSave, selectedCell, onAssign, onClear }) {
+export function ActivityModal({ open, mode, onClose, activities, onSave, selectedCell, onAssign, onClear }) {
   const [name, setName] = useState('')
-  const [color, setColor] = useState('#38bdf8')
-  const [category, setCategory] = useState('Productive')
-
-  useEffect(() => {
-    if (open) {
-      setName('')
-      setColor('#38bdf8')
-      setCategory('Productive')
-    }
-  }, [open])
+  const [category, setCategory] = useState('Very Productive')
+  const [query, setQuery] = useState('')
+  const [creating, setCreating] = useState(mode === 'create')
 
   function saveActivity(event) {
     event.preventDefault()
     if (!name.trim()) return
-    const activity = { id: createId(name), name: name.trim(), color, category }
+    const categoryOption = ACTIVITY_CATEGORY_OPTIONS.find((option) => option.value === category) || ACTIVITY_CATEGORY_OPTIONS[0]
+    const activity = { id: createId(name), name: name.trim(), color: categoryOption.color, category: categoryOption.value }
     onSave(activity)
     if (selectedCell) onAssign(activity.id)
     onClose()
   }
 
+  const selectingCell = mode === 'select' && selectedCell
+  const normalizedQuery = query.trim().toLowerCase()
+  const filteredActivities = normalizedQuery
+    ? activities.filter((activity) => activity.name.toLowerCase().includes(normalizedQuery))
+    : activities
+
+  function selectFirst(event) {
+    if (event.key !== 'Enter' || creating) return
+    const firstActivity = filteredActivities[0]
+    if (!firstActivity) return
+    event.preventDefault()
+    onAssign(firstActivity.id)
+    onClose()
+  }
+
+  function beginCreate(prefill = '') {
+    setName(prefill)
+    setCreating(true)
+  }
+
   return (
-    <Dialog open={open} title={selectedCell ? 'Edit Time Block' : 'Create Activity'} onClose={onClose}>
-      {selectedCell && (
-        <div className="mb-5">
-          <p className="mb-3 text-sm text-slate-400">
+    <Dialog open={open} title={creating ? 'Add Activity' : 'Choose Activity'} onClose={onClose}>
+      {selectingCell && !creating ? (
+        <div>
+          <p className="mb-3 text-sm text-slate-500">
             Choose an activity for {selectedCell.day.toLocaleDateString()} at {formatHour(selectedCell.hour)}.
           </p>
-          <div className="grid max-h-56 gap-2 overflow-auto pr-1">
-            {activities.map((activity) => (
+          <label className="mb-3 flex h-10 items-center gap-2 rounded-md border border-white/10 bg-black/20 px-3 text-slate-500 focus-within:border-white/25">
+            <Search className="h-4 w-4" />
+            <input
+              autoFocus
+              className="h-full min-w-0 flex-1 bg-transparent text-sm text-slate-100 outline-none placeholder:text-slate-600"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              onKeyDown={selectFirst}
+              placeholder="Search activities"
+            />
+          </label>
+          <div className="sheet-scroll grid max-h-64 gap-1.5 overflow-auto pr-1">
+            {filteredActivities.map((activity) => (
               <button
                 key={activity.id}
-                className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/70 p-3 text-left transition hover:border-sky-300/50 hover:bg-slate-800"
+                className="flex items-center gap-3 rounded-md border border-white/10 bg-white/[0.035] p-2.5 text-left transition duration-150 hover:border-white/20 hover:bg-white/[0.07] focus:border-white/30 focus:outline-none"
                 onClick={() => {
                   onAssign(activity.id)
                   onClose()
                 }}
               >
-                <span className="flex items-center gap-3">
-                  <span className="h-4 w-4 rounded-full" style={{ background: activity.color }} />
-                  <span className="font-semibold">{activity.name}</span>
-                </span>
-                <Badge className={CATEGORY_COLORS[activity.category]}>{activity.category}</Badge>
+                <span className="h-3 w-3 rounded-full" style={{ background: activity.color }} />
+                <span className="text-sm font-medium text-slate-100">{activity.name}</span>
               </button>
             ))}
+            <button
+              className="flex items-center gap-3 rounded-md border border-dashed border-white/15 bg-transparent p-2.5 text-left text-sm text-slate-300 transition hover:border-white/30 hover:bg-white/[0.045] focus:border-white/30 focus:outline-none"
+              onClick={() => beginCreate(query.trim())}
+            >
+              <Plus className="h-4 w-4" />
+              Add New Activity
+            </button>
           </div>
           <Button variant="danger" className="mt-3 w-full" onClick={() => { onClear(); onClose() }}>Clear Cell</Button>
         </div>
+      ) : (
+        <form className="space-y-4" onSubmit={saveActivity}>
+          <div>
+            <label className="mb-2 block text-sm font-medium text-slate-300">Name</label>
+            <input className="h-10 w-full rounded-md border border-white/10 bg-black/20 px-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-white/25" value={name} onChange={(event) => setName(event.target.value)} placeholder="Deep work" />
+          </div>
+          <div>
+            <label className="mb-2 block text-sm font-medium text-slate-300">Productivity category</label>
+            <div className="grid gap-2">
+              {ACTIVITY_CATEGORY_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={cn(
+                    'flex items-center justify-between rounded-md border border-white/10 bg-black/20 px-3 py-2 text-left text-sm transition hover:bg-white/[0.055]',
+                    category === option.value && 'border-white/25 bg-white/[0.075]',
+                  )}
+                  onClick={() => setCategory(option.value)}
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: option.color }} />
+                    <span className="text-slate-200">{option.label}</span>
+                  </span>
+                  <span className="text-xs text-slate-500">{option.detail}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <Button className="w-full" type="submit">
+            <Plus className="h-4 w-4" />
+            Save Activity
+          </Button>
+        </form>
       )}
-      <form className="space-y-4 border-t border-white/10 pt-5" onSubmit={saveActivity}>
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-300">Activity name</label>
-          <input className="h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-100 outline-none transition focus:border-sky-300" value={name} onChange={(event) => setName(event.target.value)} placeholder="Design sprint" />
-        </div>
-        <div className="grid grid-cols-[1fr_88px] gap-3">
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-300">Productivity category</label>
-            <select className="h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-100 outline-none transition focus:border-sky-300" value={category} onChange={(event) => setCategory(event.target.value)}>
-              {Object.keys(CATEGORY_SCORES).map((item) => <option key={item}>{item}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-300">Color</label>
-            <input className="h-11 w-full rounded-lg border border-slate-700 bg-slate-950 p-1" type="color" value={color} onChange={(event) => setColor(event.target.value)} />
-          </div>
-        </div>
-        <Button className="w-full" type="submit">
-          <Plus className="h-4 w-4" />
-          Save New Activity
-        </Button>
-      </form>
     </Dialog>
   )
 }

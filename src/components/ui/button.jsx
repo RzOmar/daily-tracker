@@ -2,13 +2,13 @@ import { cva } from 'class-variance-authority'
 import { cn } from '../../lib/utils'
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 rounded-lg border font-semibold transition duration-200 focus:outline-none focus:ring-2 focus:ring-sky-300/70 disabled:opacity-50',
+  'inline-flex items-center justify-center gap-2 rounded-md border font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50',
   {
     variants: {
       variant: {
-        default: 'border-sky-400/50 bg-sky-500 text-white shadow-glow hover:bg-sky-400',
-        secondary: 'border-slate-700 bg-slate-900/80 text-slate-100 hover:bg-slate-800',
-        ghost: 'border-transparent bg-transparent text-slate-300 hover:bg-white/10 hover:text-white',
+        default: 'border-white/15 bg-white text-slate-950 hover:bg-slate-200',
+        secondary: 'border-white/10 bg-white/[0.045] text-slate-200 hover:bg-white/[0.075]',
+        ghost: 'border-transparent bg-transparent text-slate-400 hover:bg-white/[0.06] hover:text-white',
         danger: 'border-rose-500/30 bg-rose-500/10 text-rose-200 hover:bg-rose-500/20',
       },
       size: {
@@ -27,5 +27,3 @@ const buttonVariants = cva(
 export function Button({ className, variant, size, ...props }) {
   return <button className={cn(buttonVariants({ variant, size }), className)} {...props} />
 }
-
-export { buttonVariants }

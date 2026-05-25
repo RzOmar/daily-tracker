@@ -1,57 +1,93 @@
-import { BarChart3, Flame, Timer, ZapOff } from 'lucide-react'
-import { Badge } from '../ui/badge'
-import { StatCard } from '../panels/AnalyticsPanel'
+import { useEffect, useMemo, useRef } from 'react'
 import { CATEGORY_SCORES } from '../../lib/constants'
 import { dateId, monthDates } from '../../lib/date'
+import { isBeastDay } from '../../lib/beast'
 import { cn } from '../../lib/utils'
 
-export function MonthView({ currentDate, entries, activities, analytics, now, setCurrentDate }) {
+export function MonthView({ currentDate, entries, activities, now, beast, setCurrentDate }) {
+  const todayRef = useRef(null)
   const dates = monthDates(currentDate.getFullYear(), currentDate.getMonth())
-  const firstOffset = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay()
-  const activityById = Object.fromEntries(activities.map((activity) => [activity.id, activity]))
+  const activityById = useMemo(() => Object.fromEntries(activities.map((activity) => [activity.id, activity])), [activities])
+  const monthStats = useMemo(() => {
+    const stats = {}
 
-  function dayStats(day) {
-    const id = dateId(day)
-    const dayEntries = Object.entries(entries).filter(([key]) => key.startsWith(id))
-    const score = dayEntries.reduce((sum, [, entry]) => {
+    Object.entries(entries).forEach(([key, entry]) => {
+      const dayId = key.slice(0, 10)
+      if (!dayId.startsWith(dateId(currentDate).slice(0, 7))) return
       const activity = activityById[entry.activityId]
-      return sum + (activity ? CATEGORY_SCORES[activity.category] : 0)
-    }, 0)
-    return { score, hours: dayEntries.length }
-  }
+      if (!activity) return
+      const score = CATEGORY_SCORES[activity.category] || 0
+      stats[dayId] = stats[dayId] || { hours: 0, score: 0, colors: [] }
+      stats[dayId].hours += 1
+      stats[dayId].score += score
+      stats[dayId].colors.push(activity.color)
+    })
+
+    return stats
+  }, [activityById, currentDate, entries])
+  const maxHours = Math.max(1, ...Object.values(monthStats).map((stat) => stat.hours))
+
+  useEffect(() => {
+    todayRef.current?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' })
+  }, [currentDate])
 
   return (
-    <div className="sheet-scroll h-full overflow-auto rounded-xl border border-white/10 bg-slate-950/80 p-4">
-      <div className="mb-4 grid grid-cols-4 gap-3">
-        <StatCard icon={BarChart3} label="Month score" value={analytics.monthlyScore} tone="text-emerald-300" />
-        <StatCard icon={Timer} label="Focused hours" value={`${analytics.focusedHours}h`} tone="text-sky-300" />
-        <StatCard icon={ZapOff} label="Distraction" value={`${analytics.distractionHours}h`} tone="text-rose-300" />
-        <StatCard icon={Flame} label="Streak" value={`${analytics.streak}d`} tone="text-orange-300" />
+    <div className="sheet-scroll h-full overflow-auto rounded-lg border border-white/10 bg-[#0d0f13] p-4">
+      <div className="sticky top-0 z-10 -mx-4 -mt-4 mb-4 border-b border-white/10 bg-[#0d0f13]/95 px-4 py-3 backdrop-blur">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-200">Monthly Heatmap</h2>
+            <p className="text-xs text-slate-500">Intensity reveals activity, gaps, streaks, and challenge consistency.</p>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-slate-500">
+            <span>Low</span>
+            {[0.16, 0.28, 0.42, 0.58, 0.74].map((opacity) => (
+              <span key={opacity} className="h-3 w-3 rounded-sm bg-white" style={{ opacity }} />
+            ))}
+            <span>High</span>
+          </div>
+        </div>
       </div>
-      <div className="month-grid gap-2">
+      <div className="grid grid-cols-[repeat(7,minmax(96px,1fr))] gap-2">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-          <div key={day} className="sticky top-0 z-10 rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-400">{day}</div>
+          <div key={day} className="text-xs font-medium text-slate-500">{day}</div>
         ))}
-        {Array.from({ length: firstOffset }, (_, index) => <div key={`blank-${index}`} />)}
+        {Array.from({ length: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay() }, (_, index) => (
+          <div key={`empty-${index}`} />
+        ))}
         {dates.map((day) => {
-          const stats = dayStats(day)
-          const isToday = dateId(day) === dateId(now)
-          const strength = `${Math.min(88, Math.max(8, Math.abs(stats.score) * 7 + stats.hours * 3))}%`
-          const color = stats.score >= 0 ? '#22c55e' : '#ef4444'
+          const id = dateId(day)
+          const stat = monthStats[id] || { hours: 0, score: 0, colors: [] }
+          const isToday = id === dateId(now)
+          const inBeast = isBeastDay(beast, day)
+          const alpha = Math.min(0.78, Math.max(0.08, stat.hours / maxHours))
+          const color = stat.colors[0] || (stat.score >= 0 ? '#e5e7eb' : '#fda4af')
 
           return (
             <button
-              key={dateId(day)}
-              className={cn('heatmap-cell min-h-[118px] rounded-xl border border-white/10 p-3 text-left transition hover:-translate-y-1 hover:border-sky-300/60', isToday && 'ring-2 ring-sky-300')}
-              style={{ '--heat-color': color, '--heat-strength': strength }}
+              key={id}
+              ref={isToday ? todayRef : undefined}
+              className={cn(
+                'group min-h-[74px] rounded-md border border-white/10 bg-white/[0.025] p-2 text-left transition duration-150 hover:border-white/25 hover:bg-white/[0.055]',
+                isToday && 'ring-1 ring-white/60',
+                inBeast && 'shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22)]',
+              )}
               onClick={() => setCurrentDate(day)}
-              title={`${day.toLocaleDateString()} score ${stats.score}`}
+              title={`${day.toLocaleDateString()} - ${stat.hours} tracked hours`}
             >
-              <div className="mb-8 flex items-center justify-between">
-                <span className="font-bold">{day.getDate()}</span>
-                <Badge className={stats.score >= 0 ? 'border-emerald-400/20 bg-emerald-500/10 text-emerald-200' : 'border-rose-400/20 bg-rose-500/10 text-rose-200'}>{stats.score}</Badge>
+              <div className="mb-2 flex items-center justify-between">
+                <span className={cn('text-sm font-medium', isToday ? 'text-white' : 'text-slate-300')}>{day.getDate()}</span>
+                {inBeast && <span className="h-1.5 w-1.5 rounded-full bg-white/70" />}
               </div>
-              <div className="text-xs text-slate-300">{stats.hours} tracked hours</div>
+              <div
+                className="h-7 rounded-sm border border-white/10 transition group-hover:scale-[1.02]"
+                style={{
+                  background: stat.hours
+                    ? `color-mix(in srgb, ${color} ${Math.round(alpha * 100)}%, #111318)`
+                    : 'rgba(255,255,255,0.025)',
+                }}
+              />
+              <div className="mt-1.5 text-[11px] text-slate-600">{stat.hours ? `${stat.hours}h` : ''}</div>
             </button>
           )
         })}
