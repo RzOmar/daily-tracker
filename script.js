@@ -1,4 +1,4 @@
-const activities = [
+const defaultActivities = [
   { name: "Deep Work", color: "#3b82f6" },
   { name: "Video Editing", color: "#ec4899" },
   { name: "Lecturing", color: "#f97316" },
@@ -12,47 +12,74 @@ const activities = [
   { name: "Meetings", color: "#94a3b8" }
 ];
 
-const storageKey = "monthly-activity-tracker-v1";
+const trackerStorageKey = "monthly-activity-tracker-v1";
+const customActivitiesKey = "monthly-activity-tracker-activities-v1";
 const dayCount = 31;
 const hourCount = 24;
 
-const palette = document.querySelector("#activityPalette");
+const legend = document.querySelector("#activityLegend");
 const grid = document.querySelector("#trackerGrid");
-const selectedActivityLabel = document.querySelector("#selectedActivity");
+const activityMenu = document.querySelector("#activityMenu");
+const addActivityButton = document.querySelector("#addActivityButton");
 const clearButton = document.querySelector("#clearButton");
+const activityDialog = document.querySelector("#activityDialog");
+const activityForm = document.querySelector("#activityForm");
+const closeDialogButton = document.querySelector("#closeDialogButton");
+const activityNameInput = document.querySelector("#activityNameInput");
+const activityColorInput = document.querySelector("#activityColorInput");
 
-let selectedActivity = activities[0];
-let trackerData = loadTrackerData();
+let trackerData = loadJson(trackerStorageKey, {});
+let customActivities = loadJson(customActivitiesKey, []);
+let activities = mergeActivities();
+let activeCell = null;
 
-function loadTrackerData() {
+function loadJson(key, fallback) {
   try {
-    return JSON.parse(localStorage.getItem(storageKey)) || {};
+    return JSON.parse(localStorage.getItem(key)) || fallback;
   } catch {
-    return {};
+    return fallback;
   }
 }
 
 function saveTrackerData() {
-  localStorage.setItem(storageKey, JSON.stringify(trackerData));
+  localStorage.setItem(trackerStorageKey, JSON.stringify(trackerData));
+}
+
+function saveCustomActivities() {
+  localStorage.setItem(customActivitiesKey, JSON.stringify(customActivities));
+}
+
+function mergeActivities() {
+  const activityMap = new Map();
+
+  [...defaultActivities, ...customActivities].forEach((activity) => {
+    if (!activity.name || !activity.color) {
+      return;
+    }
+
+    activityMap.set(activity.name.toLowerCase(), {
+      name: activity.name,
+      color: activity.color
+    });
+  });
+
+  return Array.from(activityMap.values());
 }
 
 function cellKey(day, hour) {
   return `${day}-${hour}`;
 }
 
-function renderPalette() {
-  palette.innerHTML = "";
+function findActivity(activityName) {
+  return activities.find((activity) => activity.name === activityName);
+}
+
+function renderLegend() {
+  legend.innerHTML = "";
 
   activities.forEach((activity) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "activity-button";
-    button.dataset.activity = activity.name;
-    button.setAttribute("aria-pressed", activity.name === selectedActivity.name);
-
-    if (activity.name === selectedActivity.name) {
-      button.classList.add("is-active");
-    }
+    const item = document.createElement("span");
+    item.className = "legend-pill";
 
     const swatch = document.createElement("span");
     swatch.className = "swatch";
@@ -61,46 +88,39 @@ function renderPalette() {
     const label = document.createElement("span");
     label.textContent = activity.name;
 
-    button.append(swatch, label);
-    button.addEventListener("click", () => selectActivity(activity));
-    palette.append(button);
+    item.append(swatch, label);
+    legend.append(item);
   });
-}
-
-function selectActivity(activity) {
-  selectedActivity = activity;
-  selectedActivityLabel.textContent = activity.name;
-  renderPalette();
 }
 
 function renderGrid() {
   grid.innerHTML = "";
-  grid.append(createHeaderCell("Day / Hour", "corner-header"));
-
-  for (let hour = 0; hour < hourCount; hour += 1) {
-    grid.append(createHeaderCell(String(hour).padStart(2, "0")));
-  }
+  grid.append(createHeaderCell("Hour", "corner-header"));
 
   for (let day = 1; day <= dayCount; day += 1) {
-    grid.append(createDayHeader(day));
+    grid.append(createHeaderCell(day, "date-header"));
+  }
 
-    for (let hour = 0; hour < hourCount; hour += 1) {
+  for (let hour = 0; hour < hourCount; hour += 1) {
+    grid.append(createHourHeader(hour));
+
+    for (let day = 1; day <= dayCount; day += 1) {
       grid.append(createActivityCell(day, hour));
     }
   }
 }
 
-function createHeaderCell(text, extraClass = "") {
+function createHeaderCell(text, className) {
   const cell = document.createElement("div");
-  cell.className = `grid-header ${extraClass}`.trim();
+  cell.className = className;
   cell.textContent = text;
   return cell;
 }
 
-function createDayHeader(day) {
+function createHourHeader(hour) {
   const cell = document.createElement("div");
-  cell.className = "day-header";
-  cell.textContent = `Day ${day}`;
+  cell.className = "hour-header";
+  cell.textContent = `${String(hour).padStart(2, "0")}:00`;
   return cell;
 }
 
@@ -115,42 +135,165 @@ function createActivityCell(day, hour) {
   button.dataset.hour = hour;
   button.title = `Day ${day}, ${String(hour).padStart(2, "0")}:00`;
 
-  if (savedActivity) {
-    applyActivity(button, savedActivity);
+  if (!savedActivity || !applyActivity(button, savedActivity)) {
+    clearActivity(button, day, hour);
   }
 
-  button.addEventListener("click", () => {
-    const currentActivity = trackerData[key];
-
-    if (currentActivity === selectedActivity.name) {
-      delete trackerData[key];
-      clearActivity(button, day, hour);
-    } else {
-      trackerData[key] = selectedActivity.name;
-      applyActivity(button, selectedActivity.name);
-    }
-
-    saveTrackerData();
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    openActivityMenu(button, day, hour);
   });
 
   return button;
 }
 
+function openActivityMenu(cell, day, hour) {
+  closeActivityMenu();
+  activeCell = { element: cell, day, hour };
+  cell.classList.add("is-menu-target");
+  renderActivityMenu(day, hour);
+
+  const rect = cell.getBoundingClientRect();
+  const menuWidth = 260;
+  const menuHeight = Math.min(410, 42 + activities.length * 38);
+  const left = Math.min(rect.left, window.innerWidth - menuWidth - 12);
+  const top = rect.bottom + menuHeight > window.innerHeight
+    ? Math.max(12, rect.top - menuHeight - 8)
+    : rect.bottom + 6;
+
+  activityMenu.style.left = `${Math.max(12, left)}px`;
+  activityMenu.style.top = `${top}px`;
+  activityMenu.hidden = false;
+}
+
+function renderActivityMenu(day, hour) {
+  activityMenu.innerHTML = "";
+
+  activities.forEach((activity) => {
+    const option = document.createElement("button");
+    option.type = "button";
+    option.className = "menu-option";
+
+    const swatch = document.createElement("span");
+    swatch.className = "swatch";
+    swatch.style.backgroundColor = activity.color;
+
+    const label = document.createElement("span");
+    label.textContent = activity.name;
+
+    option.append(swatch, label);
+    option.addEventListener("click", () => setCellActivity(day, hour, activity.name));
+    activityMenu.append(option);
+  });
+
+  const clearOption = document.createElement("button");
+  clearOption.type = "button";
+  clearOption.className = "menu-option clear-option";
+  clearOption.textContent = "Clear cell";
+  clearOption.addEventListener("click", () => clearCell(day, hour));
+  activityMenu.append(clearOption);
+}
+
+function setCellActivity(day, hour, activityName) {
+  const key = cellKey(day, hour);
+  trackerData[key] = activityName;
+  saveTrackerData();
+  applyActivity(activeCell.element, activityName);
+  closeActivityMenu();
+}
+
+function clearCell(day, hour) {
+  const key = cellKey(day, hour);
+  delete trackerData[key];
+  saveTrackerData();
+  clearActivity(activeCell.element, day, hour);
+  closeActivityMenu();
+}
+
 function applyActivity(cell, activityName) {
-  const activity = activities.find((item) => item.name === activityName);
+  const activity = findActivity(activityName);
 
   if (!activity) {
-    return;
+    return false;
   }
 
   cell.style.backgroundColor = activity.color;
   cell.setAttribute("aria-label", `${cell.title}, ${activity.name}`);
+  return true;
 }
 
 function clearActivity(cell, day, hour) {
   cell.style.backgroundColor = "";
   cell.setAttribute("aria-label", `Day ${day}, ${String(hour).padStart(2, "0")}:00, empty`);
 }
+
+function closeActivityMenu() {
+  if (activeCell?.element) {
+    activeCell.element.classList.remove("is-menu-target");
+  }
+
+  activityMenu.hidden = true;
+  activeCell = null;
+}
+
+function openActivityDialog() {
+  activityForm.reset();
+  activityColorInput.value = "#38bdf8";
+
+  if (typeof activityDialog.showModal === "function") {
+    activityDialog.showModal();
+  } else {
+    activityDialog.setAttribute("open", "");
+  }
+
+  activityNameInput.focus();
+}
+
+function closeActivityDialog() {
+  activityDialog.close();
+}
+
+function addCustomActivity(name, color) {
+  const normalizedName = name.trim();
+
+  if (!normalizedName) {
+    return;
+  }
+
+  const defaultMatch = defaultActivities.some(
+    (activity) => activity.name.toLowerCase() === normalizedName.toLowerCase()
+  );
+
+  if (defaultMatch) {
+    window.alert("That activity already exists.");
+    return;
+  }
+
+  const existingIndex = customActivities.findIndex(
+    (activity) => activity.name.toLowerCase() === normalizedName.toLowerCase()
+  );
+  const nextActivity = { name: normalizedName, color };
+
+  if (existingIndex >= 0) {
+    customActivities[existingIndex] = nextActivity;
+  } else {
+    customActivities.push(nextActivity);
+  }
+
+  saveCustomActivities();
+  activities = mergeActivities();
+  renderLegend();
+  renderGrid();
+  closeActivityDialog();
+}
+
+addActivityButton.addEventListener("click", openActivityDialog);
+closeDialogButton.addEventListener("click", closeActivityDialog);
+
+activityForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  addCustomActivity(activityNameInput.value, activityColorInput.value);
+});
 
 clearButton.addEventListener("click", () => {
   const shouldClear = window.confirm("Clear all saved activity cells for this month?");
@@ -162,7 +305,23 @@ clearButton.addEventListener("click", () => {
   trackerData = {};
   saveTrackerData();
   renderGrid();
+  closeActivityMenu();
 });
 
-renderPalette();
+document.addEventListener("click", (event) => {
+  if (!activityMenu.hidden && !activityMenu.contains(event.target)) {
+    closeActivityMenu();
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeActivityMenu();
+  }
+});
+
+window.addEventListener("resize", closeActivityMenu);
+window.addEventListener("scroll", closeActivityMenu, true);
+
+renderLegend();
 renderGrid();

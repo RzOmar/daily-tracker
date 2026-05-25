@@ -1,13 +1,16 @@
 :root {
   color-scheme: dark;
-  --bg: #0d1117;
-  --panel: #151b23;
-  --panel-strong: #1f2733;
-  --grid-line: #303948;
-  --text: #eef2f7;
-  --muted: #94a3b8;
-  --focus: #d7e4ff;
-  --shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+  --bg: #0f1115;
+  --panel: #151922;
+  --sheet: #10141c;
+  --sheet-alt: #141a24;
+  --sheet-head: #1b2230;
+  --grid-line: #2b3443;
+  --grid-line-strong: #3b4658;
+  --text: #f3f6fb;
+  --muted: #97a3b6;
+  --focus: #8ab4f8;
+  --shadow: 0 22px 70px rgba(0, 0, 0, 0.42);
 }
 
 * {
@@ -18,18 +21,19 @@ body {
   min-height: 100vh;
   margin: 0;
   background:
-    radial-gradient(circle at top left, rgba(26, 115, 232, 0.18), transparent 30rem),
-    linear-gradient(135deg, #0d1117 0%, #121822 48%, #090c12 100%);
+    radial-gradient(circle at top left, rgba(78, 142, 255, 0.14), transparent 29rem),
+    linear-gradient(135deg, #0f1115 0%, #151923 52%, #090b10 100%);
   color: var(--text);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-button {
+button,
+input {
   font: inherit;
 }
 
 .app-shell {
-  width: min(1500px, calc(100vw - 32px));
+  width: min(1540px, calc(100vw - 32px));
   margin: 0 auto;
   padding: 28px 0 36px;
 }
@@ -51,25 +55,54 @@ button {
   text-transform: uppercase;
 }
 
-h1 {
+h1,
+h2 {
   margin: 0;
+}
+
+h1 {
   font-size: clamp(1.9rem, 3vw, 3rem);
   line-height: 1;
 }
 
+h2 {
+  font-size: 1.05rem;
+}
+
 .actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
+  justify-content: flex-end;
+}
+
+.primary-button,
+.ghost-button,
+.icon-button {
+  min-height: 40px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.primary-button {
+  border: 1px solid #75a7ff;
+  background: #2d6cdf;
+  color: #fff;
+  padding: 0 14px;
+  font-weight: 700;
+}
+
+.primary-button:hover {
+  background: #3f7df0;
+  box-shadow: 0 10px 24px rgba(45, 108, 223, 0.28);
 }
 
 .ghost-button {
-  min-height: 40px;
   border: 1px solid #3b4657;
-  border-radius: 8px;
   background: #151b23;
   color: var(--text);
   padding: 0 14px;
-  cursor: pointer;
 }
 
 .ghost-button:hover {
@@ -83,7 +116,7 @@ h1 {
   padding: 16px;
   border: 1px solid #273244;
   border-radius: 8px;
-  background: rgba(21, 27, 35, 0.92);
+  background: rgba(21, 25, 34, 0.94);
   box-shadow: var(--shadow);
 }
 
@@ -100,115 +133,233 @@ h1 {
   color: var(--text);
 }
 
-.activity-palette {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
-  gap: 10px;
+.activity-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.activity-button {
-  display: grid;
-  grid-template-columns: 18px 1fr;
+.legend-pill {
+  display: inline-grid;
+  grid-template-columns: 14px auto;
   align-items: center;
-  min-height: 42px;
-  border: 1px solid #333d4f;
-  border-radius: 8px;
+  gap: 8px;
+  min-height: 32px;
+  border: 1px solid #303a4b;
+  border-radius: 999px;
   background: #111722;
-  color: var(--text);
-  padding: 0 10px;
-  text-align: left;
-  cursor: pointer;
-}
-
-.activity-button:hover,
-.activity-button.is-active {
-  border-color: var(--focus);
-  background: #202938;
-}
-
-.activity-button.is-active {
-  box-shadow: inset 0 0 0 1px var(--focus);
+  color: #dbe4f0;
+  padding: 0 11px;
+  font-size: 0.84rem;
 }
 
 .swatch {
-  width: 14px;
-  height: 14px;
-  border-radius: 4px;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.32);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.34);
 }
 
 .tracker-panel {
+  position: relative;
   overflow: auto;
-  border: 1px solid #273244;
+  max-height: calc(100vh - 230px);
+  border: 1px solid var(--grid-line-strong);
   border-radius: 8px;
-  background: var(--panel);
+  background: var(--sheet);
   box-shadow: var(--shadow);
 }
 
 .tracker-grid {
   display: grid;
-  grid-template-columns: 76px repeat(24, minmax(42px, 1fr));
-  min-width: 1120px;
+  grid-template-columns: 76px repeat(31, minmax(44px, 1fr));
+  min-width: 1440px;
 }
 
 .grid-cell,
-.grid-header,
-.day-header {
+.date-header,
+.hour-header {
   min-height: 34px;
   border-right: 1px solid var(--grid-line);
   border-bottom: 1px solid var(--grid-line);
 }
 
-.grid-header,
-.day-header {
+.date-header,
+.hour-header,
+.corner-header {
   display: grid;
   place-items: center;
-  background: var(--panel-strong);
-  color: #cbd5e1;
+  color: #c9d4e5;
   font-size: 0.78rem;
   font-weight: 700;
-  position: sticky;
-  z-index: 2;
+  user-select: none;
 }
 
-.grid-header {
+.date-header,
+.corner-header {
+  position: sticky;
   top: 0;
+  z-index: 4;
+  min-height: 38px;
+  background: var(--sheet-head);
+  box-shadow: inset 0 -1px 0 var(--grid-line-strong);
+}
+
+.hour-header,
+.corner-header {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: var(--sheet-head);
+  box-shadow: inset -1px 0 0 var(--grid-line-strong);
 }
 
 .corner-header {
-  left: 0;
-  z-index: 4;
-}
-
-.day-header {
-  left: 0;
-  z-index: 3;
+  z-index: 6;
 }
 
 .grid-cell {
   border: 0;
   border-right: 1px solid var(--grid-line);
   border-bottom: 1px solid var(--grid-line);
-  background: #0f141d;
+  background: var(--sheet);
   cursor: pointer;
-  transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
+  transition: background 130ms ease, box-shadow 130ms ease, filter 130ms ease, transform 130ms ease;
 }
 
 .grid-cell:hover {
   filter: brightness(1.18);
-  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 0 0 2px rgba(138, 180, 248, 0.75);
+  transform: translateY(-1px);
+}
+
+.grid-cell.is-menu-target {
+  box-shadow: inset 0 0 0 2px var(--focus), 0 0 0 1px rgba(138, 180, 248, 0.55);
+}
+
+.activity-menu {
+  position: fixed;
+  z-index: 20;
+  width: min(260px, calc(100vw - 24px));
+  max-height: min(410px, calc(100vh - 24px));
+  overflow: auto;
+  padding: 8px;
+  border: 1px solid #3d495d;
+  border-radius: 8px;
+  background: #161c27;
+  box-shadow: 0 20px 54px rgba(0, 0, 0, 0.46);
+}
+
+.menu-option {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 36px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  padding: 0 9px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu-option:hover {
+  background: #222b3a;
+}
+
+.menu-option.clear-option {
+  grid-template-columns: 1fr;
+  margin-top: 6px;
+  border-top: 1px solid #303a4b;
+  border-radius: 0 0 6px 6px;
+  color: #fca5a5;
+}
+
+.activity-dialog {
+  width: min(420px, calc(100vw - 32px));
+  border: 1px solid #3b4658;
+  border-radius: 8px;
+  background: #171d28;
+  color: var(--text);
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.56);
+}
+
+.activity-dialog::backdrop {
+  background: rgba(2, 6, 14, 0.68);
+}
+
+.activity-dialog form {
+  display: grid;
+  gap: 16px;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.icon-button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  min-height: 34px;
+  border: 1px solid #3b4658;
+  background: #111722;
+  color: var(--text);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.icon-button:hover {
+  background: #222b3a;
+}
+
+label {
+  display: grid;
+  gap: 7px;
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+input[type="text"] {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid #3b4658;
+  border-radius: 8px;
+  background: #0f141d;
+  color: var(--text);
+  padding: 0 12px;
+}
+
+input[type="color"] {
+  width: 100%;
+  height: 42px;
+  border: 1px solid #3b4658;
+  border-radius: 8px;
+  background: #0f141d;
+  padding: 4px;
+  cursor: pointer;
 }
 
 .grid-cell:focus-visible,
-.activity-button:focus-visible,
-.ghost-button:focus-visible {
+.menu-option:focus-visible,
+.primary-button:focus-visible,
+.ghost-button:focus-visible,
+.icon-button:focus-visible,
+input:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 760px) {
   .app-shell {
-    width: min(100vw - 20px, 1500px);
+    width: min(100vw - 20px, 1540px);
     padding-top: 18px;
   }
 
@@ -217,15 +368,18 @@ h1 {
     flex-direction: column;
   }
 
+  .actions,
+  .primary-button,
   .ghost-button {
     width: 100%;
   }
 
-  .actions {
-    width: 100%;
+  .tracker-panel {
+    max-height: calc(100vh - 285px);
   }
 
-  .activity-palette {
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  .tracker-grid {
+    grid-template-columns: 68px repeat(31, minmax(42px, 1fr));
+    min-width: 1370px;
   }
 }
