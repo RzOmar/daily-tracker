@@ -1,57 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Monthly Activity Tracker</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <main class="app-shell">
-    <header class="topbar">
-      <div>
-        <p class="eyebrow">Monthly Grid</p>
-        <h1>Activity Tracker</h1>
-      </div>
-      <div class="actions">
-        <button id="addActivityButton" class="primary-button" type="button">Add New Activity</button>
-        <button id="clearButton" class="ghost-button" type="button">Clear Month</button>
-      </div>
-    </header>
-
-    <section class="toolbar" aria-label="Activity legend">
-      <div class="toolbar-header">
-        <span>Activities</span>
-        <strong>Click any cell to choose</strong>
-      </div>
-      <div id="activityLegend" class="activity-legend"></div>
-    </section>
-
-    <section class="tracker-panel" aria-label="Monthly activity tracker">
-      <div id="trackerGrid" class="tracker-grid"></div>
-    </section>
-  </main>
-
-  <div id="activityMenu" class="activity-menu" hidden></div>
-
-  <dialog id="activityDialog" class="activity-dialog">
-    <form id="activityForm" method="dialog">
-      <div class="dialog-header">
-        <h2>Add New Activity</h2>
-        <button id="closeDialogButton" class="icon-button" type="button" aria-label="Close">×</button>
-      </div>
-      <label>
-        Activity name
-        <input id="activityNameInput" type="text" maxlength="36" required placeholder="Planning">
-      </label>
-      <label>
-        Activity color
-        <input id="activityColorInput" type="color" value="#38bdf8">
-      </label>
-      <button class="primary-button" type="submit">Save Activity</button>
-    </form>
-  </dialog>
-
-  <script src="script.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChronoFlow Productivity Dashboard</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
