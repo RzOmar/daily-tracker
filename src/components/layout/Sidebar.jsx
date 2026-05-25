@@ -1,4 +1,4 @@
-import { BarChart3, CalendarRange, Flame } from 'lucide-react'
+import { BarChart3, CalendarRange, DatabaseBackup, Flame } from 'lucide-react'
 import { cn } from '../../lib/utils'
 
 export function Sidebar({ page, setPage }) {
@@ -6,6 +6,7 @@ export function Sidebar({ page, setPage }) {
     { id: 'tracker', label: 'Tracker', icon: CalendarRange },
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
     { id: 'beast', label: 'Beast Mode', icon: Flame },
+    { id: 'backup', label: 'Backup', icon: DatabaseBackup },
   ]
 
   return (

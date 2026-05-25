@@ -17,6 +17,7 @@ import { computeAnalytics } from './lib/analytics'
 import { readStorage, writeStorage } from './lib/storage'
 import { beastDuration, beastElapsed, beastRange } from './lib/beast'
 import { normalizeCategory } from './lib/activityCategories'
+import BackupPage from './pages/BackupPage'
 
 export default function App() {
   const [now, setNow] = useState(new Date())
@@ -154,13 +155,29 @@ export default function App() {
                 </div>
               </div>
             </section>
-          ) : (
-            <section className="sheet-scroll min-h-0 flex-1 overflow-auto">
-              <div className="mx-auto max-w-5xl pb-8">
-                <BeastModePanel beast={beast} setBeast={setBeast} beastGoals={beastGoals} setBeastGoals={setBeastGoals} currentDate={currentDate} analytics={analytics} entries={entries} activities={activities} />
-              </div>
-            </section>
-          )}
+          ) : page === 'beast' ? (
+
+<section className="sheet-scroll min-h-0 flex-1 overflow-auto">
+  <div className="mx-auto max-w-5xl pb-8">
+    <BeastModePanel
+      beast={beast}
+      setBeast={setBeast}
+      beastGoals={beastGoals}
+      setBeastGoals={setBeastGoals}
+      currentDate={currentDate}
+      analytics={analytics}
+      entries={entries}
+      activities={activities}
+    />
+  </div>
+</section>
+
+) : page === 'backup' ? (
+
+<BackupPage />
+
+) : null}
+        
         </main>
       </div>
       <ActivityModal
