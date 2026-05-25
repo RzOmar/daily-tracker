@@ -1,0 +1,231 @@
+:root {
+  color-scheme: dark;
+  --bg: #0d1117;
+  --panel: #151b23;
+  --panel-strong: #1f2733;
+  --grid-line: #303948;
+  --text: #eef2f7;
+  --muted: #94a3b8;
+  --focus: #d7e4ff;
+  --shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(26, 115, 232, 0.18), transparent 30rem),
+    linear-gradient(135deg, #0d1117 0%, #121822 48%, #090c12 100%);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button {
+  font: inherit;
+}
+
+.app-shell {
+  width: min(1500px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 28px 0 36px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 3vw, 3rem);
+  line-height: 1;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.ghost-button {
+  min-height: 40px;
+  border: 1px solid #3b4657;
+  border-radius: 8px;
+  background: #151b23;
+  color: var(--text);
+  padding: 0 14px;
+  cursor: pointer;
+}
+
+.ghost-button:hover {
+  background: #202938;
+}
+
+.toolbar {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 18px;
+  padding: 16px;
+  border: 1px solid #273244;
+  border-radius: 8px;
+  background: rgba(21, 27, 35, 0.92);
+  box-shadow: var(--shadow);
+}
+
+.toolbar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.toolbar-header strong {
+  color: var(--text);
+}
+
+.activity-palette {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 10px;
+}
+
+.activity-button {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  align-items: center;
+  min-height: 42px;
+  border: 1px solid #333d4f;
+  border-radius: 8px;
+  background: #111722;
+  color: var(--text);
+  padding: 0 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.activity-button:hover,
+.activity-button.is-active {
+  border-color: var(--focus);
+  background: #202938;
+}
+
+.activity-button.is-active {
+  box-shadow: inset 0 0 0 1px var(--focus);
+}
+
+.swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.32);
+}
+
+.tracker-panel {
+  overflow: auto;
+  border: 1px solid #273244;
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.tracker-grid {
+  display: grid;
+  grid-template-columns: 76px repeat(24, minmax(42px, 1fr));
+  min-width: 1120px;
+}
+
+.grid-cell,
+.grid-header,
+.day-header {
+  min-height: 34px;
+  border-right: 1px solid var(--grid-line);
+  border-bottom: 1px solid var(--grid-line);
+}
+
+.grid-header,
+.day-header {
+  display: grid;
+  place-items: center;
+  background: var(--panel-strong);
+  color: #cbd5e1;
+  font-size: 0.78rem;
+  font-weight: 700;
+  position: sticky;
+  z-index: 2;
+}
+
+.grid-header {
+  top: 0;
+}
+
+.corner-header {
+  left: 0;
+  z-index: 4;
+}
+
+.day-header {
+  left: 0;
+  z-index: 3;
+}
+
+.grid-cell {
+  border: 0;
+  border-right: 1px solid var(--grid-line);
+  border-bottom: 1px solid var(--grid-line);
+  background: #0f141d;
+  cursor: pointer;
+  transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
+}
+
+.grid-cell:hover {
+  filter: brightness(1.18);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.6);
+}
+
+.grid-cell:focus-visible,
+.activity-button:focus-visible,
+.ghost-button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .app-shell {
+    width: min(100vw - 20px, 1500px);
+    padding-top: 18px;
+  }
+
+  .topbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ghost-button {
+    width: 100%;
+  }
+
+  .actions {
+    width: 100%;
+  }
+
+  .activity-palette {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  }
+}

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monthly Activity Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Monthly Grid</p>
+        <h1>Activity Tracker</h1>
+      </div>
+      <div class="actions">
+        <button id="clearButton" class="ghost-button" type="button">Clear Month</button>
+      </div>
+    </header>
+
+    <section class="toolbar" aria-label="Activity selector">
+      <div class="toolbar-header">
+        <span>Activity</span>
+        <strong id="selectedActivity">Deep Work</strong>
+      </div>
+      <div id="activityPalette" class="activity-palette"></div>
+    </section>
+
+    <section class="tracker-panel" aria-label="Monthly activity tracker">
+      <div id="trackerGrid" class="tracker-grid"></div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
