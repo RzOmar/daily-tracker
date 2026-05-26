@@ -31,6 +31,8 @@ export default function App() {
   const [modalOpen, setModalOpen] = useState(false)
   const [activityManagerOpen, setActivityManagerOpen] = useState(false)
   const [selectedCell, setSelectedCell] = useState(null)
+  const [dragActivityId, setDragActivityId] = useState(null)
+  const [dragging, setDragging] = useState(false)
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 60000)
@@ -91,6 +93,36 @@ export default function App() {
     })
   }
 
+  function onDragStart(event, day, hour) {
+  const key = entryKey(dateId(day), hour)
+
+  const entry = entries[key]
+
+  if (!entry) return
+
+  setDragging(true)
+  setDragActivityId(entry.activityId)
+}
+
+function onDragEnter(day, hour) {
+  if (!dragging || !dragActivityId) return
+
+  const key = entryKey(dateId(day), hour)
+
+  setEntries((current) => ({
+    ...current,
+    [key]: {
+      activityId: dragActivityId,
+      updatedAt: new Date().toISOString(),
+    },
+  }))
+}
+
+function onDragEnd() {
+  setDragging(false)
+  setDragActivityId(null)
+}
+
   const sharedGridProps = {
     currentDate,
     entries,
@@ -100,6 +132,9 @@ export default function App() {
     setCurrentDate,
     onCellOpen: openCell,
     onFillCells: fillCells,
+    onDragStart,
+    onDragEnter,
+    onDragEnd,
   }
 
   return (
