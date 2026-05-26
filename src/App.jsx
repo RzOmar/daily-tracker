@@ -33,6 +33,7 @@ export default function App() {
   const [selectedCell, setSelectedCell] = useState(null)
   const [dragActivityId, setDragActivityId] = useState(null)
   const [dragging, setDragging] = useState(false)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 60000)
@@ -139,7 +140,12 @@ function onDragEnd() {
 
   return (
     <div className="app-frame flex h-screen min-h-screen text-slate-100 max-md:flex-col">
-      <Sidebar page={page} setPage={setPage} />
+      <Sidebar
+        page={page}
+        setPage={setPage}
+        mobileSidebarOpen={mobileSidebarOpen}
+        setMobileSidebarOpen={setMobileSidebarOpen}
+      />
       <div className="flex min-w-0 flex-1 flex-col">
         <Header
           page={page}
@@ -152,7 +158,23 @@ function onDragEnd() {
           {page === 'tracker' ? (
             <>
               <div className="flex flex-wrap items-center justify-between gap-3">
+                <button
+                  onClick={() =>
+                    setMobileSidebarOpen(true)
+                  }
+                  className="rounded-md border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white lg:hidden"
+                >
+                  Menu
+                </button>
                 <div>
+                  <button
+                    onClick={() =>
+                      setMobileSidebarOpen(true)
+                    }
+                    className="rounded-md border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white lg:hidden"
+                  >
+                    Menu
+                  </button>
                   <h2 className="text-xl font-semibold tracking-tight">
                     {currentDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
                   </h2>
