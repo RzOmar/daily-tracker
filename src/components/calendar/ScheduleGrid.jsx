@@ -91,7 +91,7 @@ export function ScheduleGrid({ dates, entries, activities, now, beast, onCellOpe
         })}
         {Array.from({ length: 24 }, (_, hour) => (
           <Fragment key={hour}>
-            <div className={cn('sticky left-0 z-10 grid min-h-[52px] place-items-center border-b border-r border-white/10 bg-[#15171c]/95 text-xs font-medium text-slate-500 backdrop-blur', hour === now.getHours() && 'text-slate-200')}>
+            <div className={cn('sticky left-0 z-10 grid min-h-[36px] place-items-center border-b border-r border-white/10 bg-[#15171c]/95 text-xs font-medium text-slate-500 backdrop-blur', hour === now.getHours() && 'text-slate-200')}>
               {formatHour(hour)}
             </div>
             {dates.map((day) => {
